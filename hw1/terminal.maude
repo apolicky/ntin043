@@ -13,9 +13,10 @@ sort Terminal .
 
 ****** TERMINAL STATES 
 sort State .
-ops idle wait4card wait4pin pinaccept 
-    pinreject invalid-card payment-error  
-    printing-reciept proceed-payment : -> State [ctor] .
+ops idle wait4card wait4pin pin-accept 
+    pin-reject invalid-card payment-error  
+    insufficient-balance printing-reciept 
+    proceed-payment : -> State [ctor] .
 ******
 
 op terminal : State -> Terminal [ctor] .
@@ -46,7 +47,7 @@ rl [card-inserted] :
 
 crl [card-tapped] : 
     card-tapped(terminal(wait4card, Amount), C1) =>
-    terminal(pinaccept, Amount, C1) if Amount <= contactless-limit .
+    terminal(pin-accept, Amount, C1) if Amount <= contactless-limit .
  
 crl [card-tapped] :
     card-tapped(terminal(wait4card, Amount), C1) =>
@@ -55,7 +56,7 @@ crl [card-tapped] :
 crl [pin-entered] :
     pin-entered( 
     terminal(wait4pin, Amount, C1, Try), Pin)
-    => terminal(pinaccept, Amount, C1) 
+    => terminal(pin-accept, Amount, C1) 
     if pin-ok(C1,Pin) and Try < 3 .
 
 crl [pin-entered] :
@@ -67,40 +68,48 @@ crl [pin-entered] :
 crl [pin-entered] :
     pin-entered( 
     terminal(wait4pin, Amount, C1, Try), Pin) 
-    => terminal(pinreject) 
+    => terminal(pin-reject) 
     if not pin-ok(C1, Pin) and Try == 2 .
 
 crl [check-validity] :
-    terminal(pinaccept, Amount, C1) => 
+    terminal(pin-accept, Amount, C1) => 
     terminal(proceed-payment, Amount, C1) 
-    if card-valid(C1) .
+    if card-valid(C1) and enough-money(C1).
 
 crl [check-validity] :
-    terminal(pinaccept, Amount, C1) =>
+    terminal(pin-accept, Amount, C1) =>
     terminal(invalid-card, C1)
-    if not card-valid(C1) .
+    if not card-valid(C1) and enough-money(C1) .
 
-rl [invalid-card] :
-    terminal(invalid-card, C1) =>
-    terminal(printing-reciept) .
+crl [check-validity] :
+    terminal(pin-accept, Amount, C1) =>
+    terminal(insufficient-balance, C1)
+    if card-valid(C1) and not enough-money(C1) .
 
 crl [proceed-payment] :
     terminal(proceed-payment, Amount, C1) =>
     terminal(printing-reciept) 
     if (transfer(Amount, card-id(C1), sellers-account)) .
 
-
 crl [proceed-payment] :
     terminal(proceed-payment, Amount, C1) =>
     terminal(payment-error) 
     if not (transfer(Amount, card-id(C1), sellers-account)) .
+
+rl [invalid-card] :
+    terminal(invalid-card, C1) =>
+    terminal(printing-reciept) .
+
+rl [insufficient-balance] :
+    terminal(insufficient-balance, C1) =>
+    terminal(printing-reciept) .
 
 rl [payment-error] :
     terminal(payment-error) => terminal(printing-reciept) .
 
 
 rl [pin-rejected] :
-    terminal(pinreject) => terminal(printing-reciept) .
+    terminal(pin-reject) => terminal(printing-reciept) .
 
 
 rl [printing-reciept] :

@@ -21,6 +21,7 @@ op load-card : Card -> Terminal [ctor] .
 eq load-card(C1) = terminal(wait4pin, 500, C1, 0) .
 
 
+*** Pin entered wrong every time .
 eq wrong-pin =
     pin-entered (
         pin-entered(
@@ -29,6 +30,8 @@ eq wrong-pin =
         1355
         ) .
 
+
+*** 
 eq third-pin-ok =
     pin-entered (
         pin-entered(
@@ -40,9 +43,6 @@ eq third-pin-ok =
 eq first-pin-ok =
     pin-entered (load-card(sample-card1), 1357 ) .
 
-
-***eq insufficient-amount = 
-    
 
 endm
 

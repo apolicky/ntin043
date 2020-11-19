@@ -2,19 +2,15 @@ mod ACCOUNT is
 
 pr NAT .
 pr INT .
-pr STRING .
 inc CONFIGURATION .
 
 op Account : -> Cid [ctor] .
 op balance :_ : Nat -> Attribute [ctor gather (&)] .
-op transfer : Oid Oid Int -> Msg .
+
+op balance : Object -> Nat .
 ops in out : Object Nat -> Object [ctor] .
 
-
-op enough-money : Object Nat -> Bool .
-op balance : Object -> Nat .
-
-vars FROM TO : Oid .
+var AId : Oid .
 var N1 N2 Amount : Nat .
 ops SA NA1 NA2 NA3 : -> Object [ctor] .
 ops SAId AId1 AId2 AId3 : -> Oid .
@@ -26,27 +22,13 @@ eq NA2 = < AId2 : Account | balance : 4000 > .
 eq NA3 = < AId3 : Account | balance : 42 > .
 eq SA = < SAId : Account | balance : 150000000 > .
 
- 
-eq enough-money(< FROM : Account | balance : N1 >, Amount) =  N1 >= Amount .
+eq balance(< AId : Account | balance : N1 >) = N1 .
 
-crl [transfer] :
-    transfer(FROM, TO, Amount) 
-    < FROM : Account | balance : N1 >
-    < TO : Account | balance : N2 >
-    => 
-    < FROM : Account | balance : N1 - Amount >
-    < TO : Account | balance : N2 + Amount > 
-    if N1 > Amount . 
+eq in(< AId : Account | balance : N1 >, Amount) = 
+    < AId : Account | balance : N1 + Amount > .
 
-
-eq in(< FROM : Account | balance : N1 >, Amount) = 
-    < FROM : Account | balance : N1 + Amount > .
-
-eq out(< FROM : Account | balance : N1 >, Amount) = 
-    < FROM : Account | balance : N1 - Amount > .
-
-
-eq balance(< FROM : Account | balance : N1 >) = N1 .
+eq out(< AId : Account | balance : N1 >, Amount) = 
+    < AId : Account | balance : N1 - Amount > .
 
 endm
 

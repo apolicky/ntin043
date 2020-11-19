@@ -17,19 +17,19 @@ sort Accounts .
 sort Blocked-Cards .
 
 ops sellers-account currdate contactless-limit : -> Nat .
-ops accounts  blocked-cards : -> List{Nat} .
-op is-blocked : Nat -> Bool .
+ops accounts blocked-cards : -> List{Nat} .
 op accs : -> ObjMap .
 
-ops card-valid : Card -> Bool .
-
-op move-money : Card Nat Nat -> Card .
+op is-blocked : Nat -> Bool .
+op card-valid : Card -> Bool .
+op enough-money : Card Nat -> Bool .
 op transfer : Nat Nat Nat -> Bool . 
 op transf_from_to_ : Nat Nat Nat -> ObjMap .
 
-vars Pos CardId AccId1 AccId2 Pin ExpDate CurrDate Amount : Nat .
+vars Pos CardId AccId1 AccId2 Amount : Nat .
 var A : List{Nat} .
 var C : Card .
+var O : Oid .
 
 eq sellers-account = 555 .
 eq currdate = 123123 .
@@ -47,11 +47,7 @@ eq is-blocked(CardId) = occurs(CardId,blocked-cards) .
 eq card-valid(C) =
     not is-blocked(card-id(C)) and card-expdate(C) >= currdate . 
 
-***(rl [transf] :
-    (transf Amount from AccId1 to AccId2)
-    => insert(AccId2, in(accs[AccId2], Amount),
-        insert(AccId1, out(accs[AccId1], Amount), accs)) .)
-
+eq enough-money(C, Amount) = balance(accs[card-id(C)]) >= Amount .
 
 eq transf Amount from AccId1 to AccId2 = 
     insert(AccId2, in(accs[AccId2], Amount),
