@@ -1,0 +1,53 @@
+load terminal.maude .
+
+mod TESTS is
+
+ex TERMINAL .
+inc CONFIGURATION .
+
+ops  contactless
+     card-in
+     blocked
+     expired
+     first-pin-ok 
+     wrong-pin *** invalid pin entered 3 times
+     third-pin-ok *** valid pin entered in
+     insufficient-amount *** buyer has not enough money
+     all-ok : -> Terminal [ctor] . ***Configuration .
+
+var C1 : Card .
+
+op load-card : Card -> Terminal [ctor] .
+eq load-card(C1) = terminal(wait4pin, 500, C1, 0) .
+
+
+eq wrong-pin =
+    pin-entered (
+        pin-entered(
+            pin-entered (load-card(sample-card1), 1234 ),
+            1457),
+        1355
+        ) .
+
+eq third-pin-ok =
+    pin-entered (
+        pin-entered(
+            pin-entered (load-card(sample-card1), 1234 ),
+            1457),
+        1357
+        ) .
+
+eq first-pin-ok =
+    pin-entered (load-card(sample-card1), 1357 ) .
+
+
+***eq insufficient-amount = 
+    
+
+endm
+
+***(rew first-pin-ok .
+rew wrong-pin .
+rew third-pin-ok .
+
+)

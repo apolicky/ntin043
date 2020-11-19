@@ -1,0 +1,114 @@
+load bank.maude .
+
+mod TERMINAL is
+
+pr NAT .
+
+ex ACCOUNT .
+ex CARD2 .
+ex BANK .
+ 
+
+sort Terminal .
+
+****** TERMINAL STATES 
+sort State .
+ops idle wait4card wait4pin pinaccept 
+    pinreject invalid-card payment-error  
+    printing-reciept proceed-payment : -> State [ctor] .
+******
+
+op terminal : State -> Terminal [ctor] .
+op terminal : State Nat -> Terminal [ctor] .
+op terminal : State Card -> Terminal [ctor] .
+op terminal : State Nat Nat -> Terminal [ctor] . *** state, amount, currdate
+op terminal : State Nat Card -> Terminal [ctor] .
+op terminal : State Nat Card Nat -> Terminal [ctor] . *** state, amount, card, try
+ops get-payment pin-entered new-payment : Terminal Nat -> Terminal [ctor] .
+ops card-inserted card-tapped : Terminal Card -> Terminal [ctor] .
+***op proceed-payment : Terminal Nat -> Msg .
+op proc-payment : Terminal -> Msg .
+
+
+******
+var S : State .
+vars Amount Pin Try CurrDate : Nat .
+var C1 : Card .
+******
+  
+rl [new-payment] :
+    new-payment(terminal(idle), Amount) => 
+    terminal(wait4card, Amount) .
+
+rl [card-inserted] :
+    card-inserted(terminal(wait4card, Amount), C1 ) => 
+    terminal(wait4pin, Amount, C1, 0) . *** 0 is # of tries 
+
+crl [card-tapped] : 
+    card-tapped(terminal(wait4card, Amount), C1) =>
+    terminal(pinaccept, Amount, C1) if Amount <= contactless-limit .
+ 
+crl [card-tapped] :
+    card-tapped(terminal(wait4card, Amount), C1) =>
+    terminal(wait4pin, Amount, C1, 0) if Amount > contactless-limit .
+
+crl [pin-entered] :
+    pin-entered( 
+    terminal(wait4pin, Amount, C1, Try), Pin)
+    => terminal(pinaccept, Amount, C1) 
+    if pin-ok(C1,Pin) and Try < 3 .
+
+crl [pin-entered] :
+    pin-entered( 
+    terminal(wait4pin, Amount, C1, Try), Pin) 
+    => terminal(wait4pin, Amount, C1, Try + 1) 
+    if not pin-ok(C1, Pin) and Try < 2 .
+
+crl [pin-entered] :
+    pin-entered( 
+    terminal(wait4pin, Amount, C1, Try), Pin) 
+    => terminal(pinreject) 
+    if not pin-ok(C1, Pin) and Try == 2 .
+
+crl [check-validity] :
+    terminal(pinaccept, Amount, C1) => 
+    terminal(proceed-payment, Amount, C1) 
+    if card-valid(C1) .
+
+crl [check-validity] :
+    terminal(pinaccept, Amount, C1) =>
+    terminal(invalid-card, C1)
+    if not card-valid(C1) .
+
+rl [invalid-card] :
+    terminal(invalid-card, C1) =>
+    terminal(printing-reciept) .
+
+crl [proceed-payment] :
+    terminal(proceed-payment, Amount, C1) =>
+    terminal(printing-reciept) 
+    if (transfer(Amount, card-id(C1), sellers-account)) .
+
+
+crl [proceed-payment] :
+    terminal(proceed-payment, Amount, C1) =>
+    terminal(payment-error) 
+    if not (transfer(Amount, card-id(C1), sellers-account)) .
+
+rl [payment-error] :
+    terminal(payment-error) => terminal(printing-reciept) .
+
+
+rl [pin-rejected] :
+    terminal(pinreject) => terminal(printing-reciept) .
+
+
+rl [printing-reciept] :
+    terminal(printing-reciept) => terminal(idle) .
+
+ 
+******
+op start-terminal : -> Terminal [ctor] .
+eq start-terminal = terminal(idle) .
+******
+endm

@@ -1,0 +1,64 @@
+load account.maude .
+load card2.maude .
+load objmap.maude .
+
+mod BANK is
+
+ex ACCOUNT .
+ex CARD2 .
+
+inc CONFIGURATION .
+
+pr NAT .
+pr INT .
+pr LIST*{Nat} .
+pr OBJMAP .
+sort Accounts .
+sort Blocked-Cards .
+
+ops sellers-account currdate contactless-limit : -> Nat .
+ops accounts  blocked-cards : -> List{Nat} .
+op is-blocked : Nat -> Bool .
+op accs : -> ObjMap .
+
+ops card-valid : Card -> Bool .
+
+op move-money : Card Nat Nat -> Card .
+op transfer : Nat Nat Nat -> Bool . 
+op transf_from_to_ : Nat Nat Nat -> ObjMap .
+
+vars Pos CardId AccId1 AccId2 Pin ExpDate CurrDate Amount : Nat .
+var A : List{Nat} .
+var C : Card .
+
+eq sellers-account = 555 .
+eq currdate = 123123 .
+eq contactless-limit = 500 .
+eq blocked-cards = [3] .
+
+eq accs =
+    insert(555,SA,
+    insert(1,NA1,
+    insert(2,NA2,
+    insert(3,NA3,empty)))) .
+
+eq is-blocked(CardId) = occurs(CardId,blocked-cards) .
+
+eq card-valid(C) =
+    not is-blocked(card-id(C)) and card-expdate(C) >= currdate . 
+
+***(rl [transf] :
+    (transf Amount from AccId1 to AccId2)
+    => insert(AccId2, in(accs[AccId2], Amount),
+        insert(AccId1, out(accs[AccId1], Amount), accs)) .)
+
+
+eq transf Amount from AccId1 to AccId2 = 
+    insert(AccId2, in(accs[AccId2], Amount),
+    insert(AccId1, out(accs[AccId1], Amount), accs)) .
+
+eq transfer(Amount, AccId1, AccId2) =
+    (transf Amount from AccId1 to AccId2)[AccId1] =/= undefined .
+
+endm
+

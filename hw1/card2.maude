@@ -1,0 +1,38 @@
+mod CARD2 is
+
+pr NAT .
+
+sort Card .
+
+*** Card(ID, Pin, ExpirDate)
+
+op card : Nat Nat Nat -> Card [ctor] .
+
+ops sample-card1 sample-card2 
+    bl-card expired-card empty-card : -> Card [ctor] .
+op change-pin : Card Nat -> Card [ctor] .
+ops card-id card-expdate : Card -> Nat .
+op card-account : Card -> Nat .
+op pin-ok : Card Nat -> Bool .
+
+**** 
+
+*** vars A1 A2 : Account .
+vars I1 I2 A1 A2 P1 P2 E1 E2 : Nat .
+
+****
+eq sample-card1 = card(1, 1357, 12345678) .
+eq sample-card2 = card(2, 1234, 44445678) .
+eq bl-card = card(3, 1155, 1313131) .
+eq expired-card = card(4, 5555, 012) .
+eq empty-card = card(0, 9876, 1314141) .
+
+eq card-id(card(I1,P1,E1)) = I1 .
+eq card-expdate(card(I1,P1,E1)) = E1 .
+eq pin-ok(card(I1,P1,E1),P2) = P1 == P2 .
+
+rl [change-pin] :
+    change-pin(card(I1,P1,E1),P2) => card(I1, P2, E1).
+
+
+endm

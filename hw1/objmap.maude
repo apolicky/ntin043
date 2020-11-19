@@ -1,0 +1,38 @@
+mod OBJMAP is
+
+pr BOOL .
+pr NAT .
+pr CONFIGURATION .
+
+sorts ObjEntry ObjMap .
+subsort ObjEntry < ObjMap .
+op _|->_ : Nat Object -> ObjEntry [ctor] .
+op empty : -> ObjMap [ctor] .
+op _,_ : ObjMap ObjMap -> ObjMap [ctor assoc comm id: empty prec 121 format (d r os d)] .
+op undefined : -> [Object] [ctor] .
+var N : Nat .
+vars O O’ : Object .
+var M : ObjMap .
+
+op insert : Nat Object ObjMap -> ObjMap .
+eq insert(N, O, (M, N |-> O’)) = 
+    if $hasMapping(M, N) then
+        insert(N, O, M)
+    else (M, N |-> O)
+    fi .
+
+eq insert(N, O, M) = 
+    (M, N |-> O) [owise] .
+
+op $hasMapping : ObjMap Nat -> Bool .
+eq $hasMapping((M, N |-> O), N) = true .
+eq $hasMapping(M, N) = false [owise] .
+
+op _[_] : ObjMap Nat -> [Object] [prec 23] .
+eq (M, N |-> O)[N] = 
+    if $hasMapping(M, N) then
+         undefined
+     else O fi .
+eq M[N] = undefined [owise] .
+
+endm
