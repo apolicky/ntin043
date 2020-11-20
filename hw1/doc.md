@@ -81,3 +81,11 @@ Banku ve svém modelu reprezenuji jen jako modul, který má funkce přísluší
 Banka má u sebe klientské účty, u kterých může kontrolovat zůstatek a převádět mezi nimi peníze.
 
 Dále u karet dokáže ověřit, jestli jsou blokované (má na to databázi řešenou pouze seznamem idček karet), jsou-li propadlé (porovná data).
+
+### Terminal
+
+Zmíněné výše v sekci Přechody.
+
+## Testy
+
+Sepsal jsem pár jednoduchých testů. Jsou v souboru `tests.maude`, po konci modulu `TESTS` jsou zakomentované jednotlivé případy.

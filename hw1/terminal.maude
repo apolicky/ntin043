@@ -27,8 +27,6 @@ op terminal : State Nat Card -> Terminal [ctor] .
 op terminal : State Nat Card Nat -> Terminal [ctor] . *** state, amount, card, try
 ops get-payment pin-entered new-payment : Terminal Nat -> Terminal [ctor] .
 ops card-inserted card-tapped : Terminal Card -> Terminal [ctor] .
-***op proceed-payment : Terminal Nat -> Msg .
-op proc-payment : Terminal -> Msg .
 
 
 ******
@@ -74,17 +72,17 @@ crl [pin-entered] :
 crl [check-validity] :
     terminal(pin-accept, Amount, C1) => 
     terminal(proceed-payment, Amount, C1) 
-    if card-valid(C1) and enough-money(C1).
+    if card-valid(C1) and enough-money(C1, Amount).
 
 crl [check-validity] :
     terminal(pin-accept, Amount, C1) =>
     terminal(invalid-card, C1)
-    if not card-valid(C1) and enough-money(C1) .
+    if not card-valid(C1) .
 
 crl [check-validity] :
     terminal(pin-accept, Amount, C1) =>
     terminal(insufficient-balance, C1)
-    if card-valid(C1) and not enough-money(C1) .
+    if card-valid(C1) and not enough-money(C1, Amount) .
 
 crl [proceed-payment] :
     terminal(proceed-payment, Amount, C1) =>

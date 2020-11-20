@@ -5,15 +5,16 @@ mod TESTS is
 ex TERMINAL .
 inc CONFIGURATION .
 
-ops  contactless
-     card-in
-     blocked
-     expired
-     first-pin-ok 
-     wrong-pin *** invalid pin entered 3 times
-     third-pin-ok *** valid pin entered in
-     insufficient-amount *** buyer has not enough money
-     all-ok : -> Terminal [ctor] . ***Configuration .
+ops contactless *** small enough price, pin not needed.
+    contactless2 *** pin needed, price exceeds the contactless-limit
+    blocked *** card is blocked, transaction does not happen
+    expired *** card is expired, transaction does not happen
+    first-pin-ok *** test on pin validity
+    wrong-pin *** invalid pin entered 3 times
+    third-pin-ok *** valid pin entered in
+    insufficient-amount *** buyer has not enough money
+    bussy-terminal *** terminal is in the middle of transaction
+    all-ok : -> Terminal [ctor] . ***Configuration .
 
 var C1 : Card .
 
@@ -43,11 +44,53 @@ eq third-pin-ok =
 eq first-pin-ok =
     pin-entered (load-card(sample-card1), 1357 ) .
 
+*** small enough price, pin not needed.
+eq contactless =
+    card-tapped(
+    new-payment(
+    terminal(idle),400),sample-card1).
+
+*** pin needed, price exceeds the contactless-limit
+eq contactless2 =
+    pin-entered(
+    pin-entered(
+    card-tapped(
+    new-payment(
+    terminal(idle),4000),sample-card1), 1234), 1357) .
+
+*** card is blocked, transaction does not happen
+eq blocked = 
+    pin-entered(
+    card-tapped(
+    new-payment(
+    terminal(idle), 4000), bl-card), 1155) .
+
+*** card is expired, transaction does not happen
+eq expired = 
+    card-tapped(
+    new-payment(
+    terminal(idle), 300), expired-card) .
+
+eq bussy-terminal =
+    card-tapped(
+    new-payment(
+    terminal(wait4pin, 1000, sample-card1, 0), 300), sample-card2) .
+
+eq all-ok = 
+    pin-entered(
+    card-inserted(
+    new-payment(
+    terminal(idle), 600), sample-card2), 1234) .
 
 endm
 
-***(rew first-pin-ok .
-rew wrong-pin .
-rew third-pin-ok .
-
-)
+***set trace on .
+***rew first-pin-ok .
+***rew wrong-pin .
+***rew third-pin-ok .
+***rew contactless .
+***rew contactless2 .
+***rew blocked .
+***rew expired .
+***rew bussy-terminal .
+***rew all-ok .
